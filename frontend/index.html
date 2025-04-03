@@ -1,25 +1,20 @@
-// frontend/index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes App</title>
+    <title>Note App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>My Notes</h1>
-        <form id="noteForm">
-            <input type="text" id="title" placeholder="Title" required>
-            <textarea id="content" placeholder="Write your note here..." required></textarea>
-            <div class="button-group">
-                <button type="submit" class="add-note">Add Note</button>
-                <button type="button" id="generateAI" class="generate-ai">Generate AI Note</button>
-            </div>
-        </form>
-        <div id="notes"></div>
+    <div class="cunt">
+        <h1>Notes</h1>
+        <input type="text" id="noteTitle" placeholder="Title">
+        <textarea id="noteContent" placeholder="Content"></textarea>
+        <button onclick="addNote()">Add Note</button>
+        <ul id="notesList"></ul>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>

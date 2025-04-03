@@ -1,38 +1,66 @@
 // backend/server.js
-const express = require("express");
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const noteRoutes = require("./routes/noteRoutes");
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
-dotenv.config();
 const app = express();
+const db = new sqlite3.Database('./backend/notes.db');
 
-// Middleware
-app.use(express.json());
 app.use(cors());
-app.use(express.static("../frontend"));
+app.use(bodyParser.json());
 
-// Routes
-app.use("/api/notes", noteRoutes);
+// Create notes table
+ db.run(`CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    content TEXT
+ )`);
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-// backend/models/Note.js
-const mongoose = require("mongoose");
-
-const noteSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+// Get all notes
+app.get('/notes', (req, res) => {
+    db.all('SELECT * FROM notes', [], (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
+    });
 });
 
-module.exports = mongoose.model("Note", noteSchema);
+// Add a new note
+app.post('/notes', (req, res) => {
+    const { title, content } = req.body;
+    db.run('INSERT INTO notes (title, content) VALUES (?, ?)', [title, content], function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ id: this.lastID, title, content });
+    });
+});
+
+// Update a note
+app.put('/notes/:id', (req, res) => {
+    const { title, content } = req.body;
+    db.run('UPDATE notes SET title = ?, content = ? WHERE id = ?', [title, content, req.params.id], function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Note updated' });
+    });
+});
+
+// Delete a note
+app.delete('/notes/:id', (req, res) => {
+    db.run('DELETE FROM notes WHERE id = ?', req.params.id, function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Note deleted' });
+    });
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));
